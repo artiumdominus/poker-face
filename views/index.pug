@@ -1,0 +1,27 @@
+extends layout
+
+block content
+  div.ui.masthead.vertical.segment
+    div.ui.container
+      div.introduction
+        h1.ui.header= title
+    div.ui.main.container
+      p= description
+      div.ui.segment
+        p Please select the cards.
+        form.ui.form
+          div.field
+            label Community Cards
+            select.ui.fluid.search.dropdown.selection.multiple(multiple, id='community-cards')
+              option(value='') Select Cards
+          div.field
+            label Player 1
+            select.ui.fluid.search.dropdown.selection.multiple(multiple id='player1-cards')
+              option(value='') Select Cards
+          div.field
+            label Player 2
+            select.ui.fluid.search.dropdown.selection.multiple(multiple, id='player2-cards')
+              option(value='') Select Cards
+          button.ui.button(id='compare-button') Compare
+  
+  script(src='/javascripts/index.js')

@@ -25,7 +25,7 @@ function initCardDropdown(id) {
 }
 
 ['community-cards', 'player1-cards', 'player2-cards']
-  .forEach((dropdown_id) => initCardDropdown(dropdown_id) );
+  .forEach((selectId) => initCardDropdown(selectId) );
 
 $('select')
   .dropdown()
@@ -42,7 +42,25 @@ function compareCards(ev) {
   }
   xhttp.open('POST', '/poker-compare', true);
   xhttp.setRequestHeader('Content-Type', 'application/json');
-  xhttp.send("{}");
+  xhttp.send(JSON.stringify(getGame()));
 }
 
 document.getElementById('compare-button').addEventListener('click', compareCards);
+
+function getGame() {
+  return {
+    communityCards: getCards('#community-cards'),
+    player1Cards: getCards('#player1-cards'),
+    player2Cards: getCards('#player2-cards')
+  };
+}
+
+function getCards(selectId) {
+  return $(selectId).dropdown('get value').map((textCard) => {
+    let splittedCard = textCard.split(' ');
+    return {
+      kind: splittedCard[0],
+      suit: splittedCard[1]
+    };
+  });
+}

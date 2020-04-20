@@ -1,4 +1,4 @@
-var kinds = ['A','1','2','3','4','5','6','7','8','9','10','J','Q','K'];
+var kinds = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
 var suits = ['Spades','Hearts','Clubs','Diamonds'];
 var suit_entities = {
   'Spades'   : '&spades;',
@@ -40,6 +40,7 @@ function compareCards(ev) {
 
       let response = JSON.parse(this.responseText);
       if (response.ok) {
+        debugger;
         responseElement.classList.add("ui","info","message");
 
         let header = document.createElement('div');
@@ -59,6 +60,7 @@ function compareCards(ev) {
         player1Cards.innerHTML = 'Cards: ' + renderCards(response.player1Hand.cards);
         player1Game.appendChild(player1Hand);
         player1Game.appendChild(player1Cards);
+        player1Info.appendChild(player1Game);
 
         let player2Info = document.createElement('li');
         let player2Text = document.createTextNode('Player 2');
@@ -70,6 +72,7 @@ function compareCards(ev) {
         player2Cards.innerHTML = 'Cards: ' + renderCards(response.player2Hand.cards);
         player2Game.appendChild(player2Hand);
         player2Game.appendChild(player2Cards);
+        player2Info.appendChild(player2Game);
 
         playersList.appendChild(player1Info);
         playersList.appendChild(player2Info);
@@ -118,7 +121,7 @@ function getCards(selectId) {
 }
 
 function renderCards(cardList) {
-  cardList.map((card) => {
-    return card.kind + ' ' + suit_entities[card.suit] + ' ';
+  return cardList.map((card) => {
+    return ' ' + card.kind + ' ' + suit_entities[card.suit] + ' ';
   })
 }

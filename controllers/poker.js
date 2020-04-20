@@ -1,6 +1,7 @@
 exports.pokerCompare = function (req, res) {
   
   let game = req.body;
+  console.log(req.body);
 
   let errors = validateGame(game);
 
@@ -11,12 +12,8 @@ exports.pokerCompare = function (req, res) {
   let player1Count = generateCounter();
   let player2Count = generateCounter();
 
-  console.log('counters generated');
-
   initialCount(game.player1Cards, player1Count);
   initialCount(game.player2Cards, player2Count);
-
-  console.log('initial counting');
 
   game.communityCards.forEach((card) => {
     communityCount(card, player1Count, game.player1Cards);
@@ -26,7 +23,8 @@ exports.pokerCompare = function (req, res) {
   console.log('community matched');
 
   let player1Hand = evalHand(game.player1Cards, player1Count);
-  let player2hand = evalHand(game.player2Cards, player2Count);
+
+  let player2Hand = evalHand(game.player2Cards, player2Count);
   
   console.log('hands evaluated');
   console.log(player1Hand);
@@ -38,9 +36,9 @@ exports.pokerCompare = function (req, res) {
   } else if (player1Hand.order < player2Hand.order) {
     winner = "Player 2";
   } else {
-    if (player1Hand.highestCardValue > player2hand.highestCardValue) {
+    if (player1Hand.highestCardValue > player2Hand.highestCardValue) {
       winner = "Player 1";
-    } else if (player1Hand.highestCardValue < player2hand.highestCardValue) {
+    } else if (player1Hand.highestCardValue < player2Hand.highestCardValue) {
       winner = "Player 2";
     } else {
       winner = "Draw";
@@ -74,7 +72,7 @@ function validateGame(game) {
 
   let allCards = game.communityCards.concat(game.player1Cards, game.player2Cards);
 
-  let kinds = ['A','1','2','3','4','5','6','7','8','9','10','J','Q','K'];
+  let kinds = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
   let suits = ['Spades','Hearts','Clubs','Diamonds'];
 
   for (let card of allCards) {
@@ -123,7 +121,7 @@ function initialCount(playerCards, counter) {
 }
 
 function communityCount(card, counter, playerCards) {
-  if (card.suit in counter.suits || card.kind in counter.kind) {
+  if (card.suit in counter.suits || card.kind in counter.kinds) {
     if (card.suit in counter.suits) {
       counter.suits[card.suit] += 1;
     } else {
@@ -156,7 +154,9 @@ function evalHand(playerCards, counter) {
     'Q'  : 12,
     'K'  : 13,
   }
-  
+
+  let playerCardValues = playerCards.map(c => cardValues[c.kind]);
+
   let handSoFar = {
     order: 10,
     name: 'HighCard',
@@ -196,7 +196,7 @@ function evalHand(playerCards, counter) {
       for (let i = 0; i <= cards.length-5; ++i) {
         straightFlush = true;
         for (let j = i+1; j < i+5; ++j) {
-          if (cardValues[cards[j]] !== cardValues[cards[j-1]] + 1) {
+          if (cardValues[cards[j].kind] !== cardValues[cards[j-1].kind] + 1) {
             straightFlush = false;
             break;
           }
@@ -234,7 +234,7 @@ function evalHand(playerCards, counter) {
     for (let i = 0; i <= cards.length-5; ++i) {
       straight = true;
       for (let j = i+1; j < i+5; ++j) {
-        if (cardValues[cards[j]] !== cardValues[cards[j-1]] + 1) {
+        if (cardValues[cards[j].kind] !== cardValues[cards[j-1].kind] + 1) {
           straight = false;
           break;
         }
@@ -259,31 +259,31 @@ function evalHand(playerCards, counter) {
         order: 3,
         name: 'Four of a kind',
         cards: cards,
-        highestCardValue: cardValues[cards[0]]
+        highestCardValue: cardValues[cards[0].kind]
       };
     } else if (counter.kinds[kind] === 3) {
       // Full House
       cards = playerCards.filter(card => card.kind === kind);
       for (let kind2 in counter.kinds) {
         if (counter.kinds[kind2] >= 2 && kind !== kind2) {
-          if ((handSoFar.order === 4 && handSoFar.highestCardValue < cardValues[cards[0]] ) || handSoFar.order > 4) {
+          if ((handSoFar.order === 4 && handSoFar.highestCardValue < cardValues[cards[0].kind] ) || handSoFar.order > 4) {
             handSoFar = {
               order: 4,
               name: 'Full House',
               cards: cards.concat(playerCards.filter(card => card.kind === kind2).slice(0,2)),
-              highestCardValue: cardValues[cards[0]]
+              highestCardValue: cardValues[cards[0].kind]
             }
           }
         }
       }
 
       // Three of a kind
-      if ((handSoFar.order === 7 && handSoFar.highestCardValue < cardValues[cards[0]] ) || handSoFar.order > 4) {
+      if ((handSoFar.order === 7 && handSoFar.highestCardValue < cardValues[cards[0].kind] ) || handSoFar.order > 4) {
         handSoFar = {
           order: 7,
           name: 'Three of a kind',
           cards: cards,
-          highestCardValue: cardValues[cards[0]]
+          highestCardValue: cardValues[cards[0].kind]
         }
       }
     } else if (counter.kinds[kind] === 2) {
@@ -291,24 +291,24 @@ function evalHand(playerCards, counter) {
       cards = playerCards.filter(card => card.kind === kind);
       for (let kind2 in counter.kinds) {
         if (counter.kinds[kind2] == 2 && kind !== kind2) {
-          if ((handSoFar.order === 8 && handSoFar.highestCardValue < cardValues[cards[0]] ) || handSoFar.order > 8) {
+          if ((handSoFar.order === 8 && handSoFar.highestCardValue < cardValues[cards[0].kind] ) || handSoFar.order > 8) {
             handSoFar = {
               order: 8,
               name: 'Two Pairs',
               cards: cards.concat(playerCards.filter(card => card.kind === kind2)),
-              highestCardValue: cardValues[cards[0]]
+              highestCardValue: cardValues[cards[0].kind]
             }
           }
         }
       }
 
       // One Pair
-      if ((handSoFar.order === 9 && handSoFar.highestCardValue < cardValues[cards[0]] ) || handSoFar.order > 9) {
+      if ((handSoFar.order === 9 && handSoFar.highestCardValue < cardValues[cards[0].kind] ) || handSoFar.order > 9) {
         handSoFar = {
           order: 9,
           name: 'One Pair',
           cards: cards,
-          highestCardValue: cardValues[cards[0]]
+          highestCardValue: cardValues[cards[0].kind]
         }
       }
     }

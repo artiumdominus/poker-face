@@ -12,16 +12,17 @@ block content
         form.ui.form
           div.field
             label Community Cards
-            select.ui.fluid.search.dropdown.selection.multiple(multiple, id='community-cards')
+            select.ui.fluid.search.dropdown.selection.multiple#community-cards(multiple)
               option(value='') Select Cards
           div.field
             label Player 1
-            select.ui.fluid.search.dropdown.selection.multiple(multiple id='player1-cards')
+            select.ui.fluid.search.dropdown.selection.multiple#player1-cards(multiple)
               option(value='') Select Cards
           div.field
             label Player 2
-            select.ui.fluid.search.dropdown.selection.multiple(multiple, id='player2-cards')
+            select.ui.fluid.search.dropdown.selection.multiple#player2-cards(multiple)
               option(value='') Select Cards
           button.ui.button(id='compare-button') Compare
+        div#response
   
   script(src='/javascripts/index.js')

@@ -11,17 +11,27 @@ exports.pokerCompare = function (req, res) {
   let player1Count = generateCounter();
   let player2Count = generateCounter();
 
+  console.log('counters generated');
+
   initialCount(game.player1Cards, player1Count);
   initialCount(game.player2Cards, player2Count);
+
+  console.log('initial counting');
 
   game.communityCards.forEach((card) => {
     communityCount(card, player1Count, game.player1Cards);
     communityCount(card, player2Count, game.player2Cards);
   });
 
-  player1Hand = evalHand(game.player1Cards, player1Count);
-  player2hand = evalHand(game.player2Cards, player2Count);
+  console.log('community matched');
+
+  let player1Hand = evalHand(game.player1Cards, player1Count);
+  let player2hand = evalHand(game.player2Cards, player2Count);
   
+  console.log('hands evaluated');
+  console.log(player1Hand);
+  console.log(player2Hand);
+
   let winner;
   if (player1Hand.order > player2Hand.order) {
     winner = "Player 1";
@@ -36,6 +46,8 @@ exports.pokerCompare = function (req, res) {
       winner = "Draw";
     }
   }
+
+  console.log('winner defined');
   
   return res.json({
     ok: true,
@@ -66,7 +78,9 @@ function validateGame(game) {
   let suits = ['Spades','Hearts','Clubs','Diamonds'];
 
   for (let card of allCards) {
-    if (!(card.kind in kinds) || !(card.suit in suits)) {
+    if (!kinds.includes(card.kind) || !suits.includes(card.suit)) {
+      console.log(card);
+      console.log(allCards);
       errors.push("There's some invalid cards in the input");
       return errors;
     }
@@ -76,6 +90,7 @@ function validateGame(game) {
   for (let card of allCards) {
     if (cardsSoFar.find(c => c.kind == card.kind && c.suit == card.suit)) {
       errors.push("There's some repeated cards in the input");
+      break;
     } else {
       cardsSoFar.push(card);
     }
@@ -115,12 +130,13 @@ function communityCount(card, counter, playerCards) {
       counter.suits[card.suit] = 1;
     }
 
-    if (card.kind in player2Cards.kinds) {
+    if (card.kind in counter.kinds) {
       counter.kinds[card.kind] += 1;
     } else {
       counter.kinds[card.kind] = 1;
     }
   }
+
   playerCards.push(card);
 }
 
@@ -250,7 +266,7 @@ function evalHand(playerCards, counter) {
       cards = playerCards.filter(card => card.kind === kind);
       for (let kind2 in counter.kinds) {
         if (counter.kinds[kind2] >= 2 && kind !== kind2) {
-          if ((hansSoFar.order === 4 && handSoFar.highestCardValue < cardValues[cards[0]] ) || handSoFar.order > 4) {
+          if ((handSoFar.order === 4 && handSoFar.highestCardValue < cardValues[cards[0]] ) || handSoFar.order > 4) {
             handSoFar = {
               order: 4,
               name: 'Full House',
@@ -262,7 +278,7 @@ function evalHand(playerCards, counter) {
       }
 
       // Three of a kind
-      if ((hansSoFar.order === 7 && handSoFar.highestCardValue < cardValues[cards[0]] ) || handSoFar.order > 4) {
+      if ((handSoFar.order === 7 && handSoFar.highestCardValue < cardValues[cards[0]] ) || handSoFar.order > 4) {
         handSoFar = {
           order: 7,
           name: 'Three of a kind',
@@ -275,7 +291,7 @@ function evalHand(playerCards, counter) {
       cards = playerCards.filter(card => card.kind === kind);
       for (let kind2 in counter.kinds) {
         if (counter.kinds[kind2] == 2 && kind !== kind2) {
-          if ((hansSoFar.order === 8 && handSoFar.highestCardValue < cardValues[cards[0]] ) || handSoFar.order > 8) {
+          if ((handSoFar.order === 8 && handSoFar.highestCardValue < cardValues[cards[0]] ) || handSoFar.order > 8) {
             handSoFar = {
               order: 8,
               name: 'Two Pairs',
@@ -287,7 +303,7 @@ function evalHand(playerCards, counter) {
       }
 
       // One Pair
-      if ((hansSoFar.order === 9 && handSoFar.highestCardValue < cardValues[cards[0]] ) || handSoFar.order > 9) {
+      if ((handSoFar.order === 9 && handSoFar.highestCardValue < cardValues[cards[0]] ) || handSoFar.order > 9) {
         handSoFar = {
           order: 9,
           name: 'One Pair',

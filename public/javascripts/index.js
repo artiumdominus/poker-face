@@ -37,7 +37,29 @@ function compareCards(ev) {
   let xhttp = new XMLHttpRequest();
   xhttp.onreadystatechange = function() {
     if (this.readyState == 4 && this.status == 200) {
-      console.log(JSON.parse(this.responseText));
+      let responseElement = document.getElementById('response');
+      responseElement.classList.remove(...responseElement.classList);
+      responseElement.innerHTML = '';
+
+      let response = JSON.parse(this.responseText);
+      if (response.ok) {
+        responseElement.classList.add("ui","info","message");
+
+        responseElement.innerHTML = '<strong>' + response.winner + '</strong>';
+
+      } else {
+        responseElement.classList.add("ui","negative","message");
+
+        let ul = document.createElement('ul');
+
+        for (let error of response.errors) {
+          let li = document.createElement('li');
+          li.innerHTML = error;
+          ul.appendChild(li);
+        }
+
+        responseElement.appendChild(ul);
+      }
     }
   }
   xhttp.open('POST', '/poker-compare', true);

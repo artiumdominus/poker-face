@@ -8,79 +8,26 @@ exports.pokerCompare = function (req, res) {
     return res.json({ ok: false, errors: errors });
   }
   
-  player1Count = {
-    suits: {},
-    kinds: {},
-  };
+  let player1Count = generateCounter();
+  let player2Count = generateCounter();
 
-  player2Count = {
-    suits: {},
-    kinds: {},
-  }
-
-  game.player1Cards.forEach((card) => {
-    if (card.suit in player1Count.suits) {
-      player1Count.suits[card.suit] += 1;
-    } else {
-      player1Count.suits[card.suit] = 1;
-    }
-
-    if (card.kind in player1Cards.kinds) {
-      player1Count.kinds[card.kind] += 1;
-    } else {
-      player1Count.kinds[card.kind] = 1;
-    }
-  });
-
-  game.player2Cards.forEach((card) => {
-    if (card.suit in player2Count.suits) {
-      player2Count.suits[card.suit] += 1;
-    } else {
-      player2Count.suits[card.suit] = 1;
-    }
-
-    if (card.kind in player2Cards.kinds) {
-      player2Count.kinds[card.kind] += 1;
-    } else {
-      player2Count.kinds[card.kind] = 1;
-    }
-  });
+  initialCount(game.player1Cards, player1Count);
+  initialCount(game.player2Cards, player2Count);
 
   game.communityCards.forEach((card) => {
-    if (card.suit in player2Count.suits || card.kind in player2Cards.kind) {
-      if (card.suit in player1Count.suits) {
-        player1Count.suits[card.suit] += 1;
-      } else {
-        player1Count.suits[card.suit] = 1;
-      }
-  
-      if (card.kind in player1Cards.kinds) {
-        player1Count.kinds[card.kind] += 1;
-      } else {
-        player1Count.kinds[card.kind] = 1;
-      }
-
-      game.player1Cards.push(card);
-    }
-
-    if (card.suit in player2Count.suits || card.kind in player2Cards.kind) {
-      if (card.suit in player2Count.suits) {
-        player2Count.suits[card.suit] += 1;
-      } else {
-        player2Count.suits[card.suit] = 1;
-      }
-  
-      if (card.kind in player2Cards.kinds) {
-        player2Count.kinds[card.kind] += 1;
-      } else {
-        player2Count.kinds[card.kind] = 1;
-      }
-
-      game.player2Cards.push(card);
-    }
+    communityCount(card, player1Count, game.player1Cards);
+    communityCount(card, player2Count, game.player2Cards);
   });
+
+  player1Hand = evalHand(game.player1Cards, player1Count);
+  player2hand = evalHand(game.player2Cards, player2Count); 
   
-  return res.json({ winner: "player1" });
+  return res.json({
+    ok: true,
+    winner: "player1",
+    player1Hand: player1Hand,
+    player2Hand: player2Hand,
+  });
 }
 
 function validateGame(game) {
@@ -120,4 +67,76 @@ function validateGame(game) {
   }
 
   return errors;
+}
+
+function generateCounter() {
+  return {
+    suits: {},
+    kinds: {},
+  };
+}
+
+function initialCount(playerCards, counter) {
+  playerCards.forEach((card) => {
+    if (card.suit in counter.suits) {
+      counter.suits[card.suit] += 1;
+    } else {
+      counter.suits[card.suit] = 1;
+    }
+
+    if (card.kind in counter.kinds) {
+      counter.kinds[card.kind] += 1;
+    } else {
+      counter.kinds[card.kind] = 1;
+    }
+  });
+}
+
+function communityCount(card, counter, playerCards) {
+  if (card.suit in counter.suits || card.kind in counter.kind) {
+    if (card.suit in counter.suits) {
+      counter.suits[card.suit] += 1;
+    } else {
+      counter.suits[card.suit] = 1;
+    }
+
+    if (card.kind in player2Cards.kinds) {
+      counter.kinds[card.kind] += 1;
+    } else {
+      counter.kinds[card.kind] = 1;
+    }
+
+    playerCards.push(card);
+  }
+}
+
+function evalHand(playerCards, counter) {
+  let handSoFar = {
+    order: 10,
+    name: 'HighCard',
+    cards: null,
+    highestCardValue: null,
+  }
+
+  for (suit in counter.suits) {
+    if (counter.suits[suit] === 5) {
+      // Royal Straight Flush -> return
+      // Straight Flush
+      // Flush
+    }
+  }
+
+  for (kind in counter.kinds) {
+    if (counter.kinds[kind] === 4) {
+      // Four of a kind -> return
+    } else if (counter.kinds[kind] === 3) {
+      // Full House
+      // Three of a kind
+    } else if (counter.kinds[kind] === 2) {
+      // Two Pairs
+      // One Pair
+    }
+  }
+
+  // High Card
 }

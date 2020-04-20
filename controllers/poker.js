@@ -14,28 +14,32 @@ exports.pokerCompare = function (req, res) {
   initialCount(game.player1Cards, player1Count);
   initialCount(game.player2Cards, player2Count);
 
-  let player1OriginalKinds = [];
-  let player2OriginalKinds = [];
-
-  for (let kind in player1Count.kinds) {
-    player1OriginalKinds.push(kind);
-  }
-
-  for (let kind in player2Count.kinds) {
-    player2OriginalKinds.push(kind);
-  }
-
   game.communityCards.forEach((card) => {
     communityCount(card, player1Count, game.player1Cards);
     communityCount(card, player2Count, game.player2Cards);
   });
 
-  player1Hand = evalHand(game.player1Cards, player1Count, player1OriginalKinds);
-  player2hand = evalHand(game.player2Cards, player2Count, player2OriginalKinds); 
+  player1Hand = evalHand(game.player1Cards, player1Count);
+  player2hand = evalHand(game.player2Cards, player2Count);
+  
+  let winner;
+  if (player1Hand.order > player2Hand.order) {
+    winner = "Player 1";
+  } else if (player1Hand.order < player2Hand.order) {
+    winner = "Player 2";
+  } else {
+    if (player1Hand.highestCardValue > player2hand.highestCardValue) {
+      winner = "Player 1";
+    } else if (player1Hand.highestCardValue < player2hand.highestCardValue) {
+      winner = "Player 2";
+    } else {
+      winner = "Draw";
+    }
+  }
   
   return res.json({
     ok: true,
-    winner: "player1",
+    winner: winner,
     player1Hand: player1Hand,
     player2Hand: player2Hand,
   });
@@ -116,12 +120,11 @@ function communityCount(card, counter, playerCards) {
     } else {
       counter.kinds[card.kind] = 1;
     }
-
-    playerCards.push(card);
   }
+  playerCards.push(card);
 }
 
-function evalHand(playerCards, counter, originalKinds) {
+function evalHand(playerCards, counter) {
   let cardValues = {
     'A'  : 1,
     '2'  : 2,
@@ -174,9 +177,9 @@ function evalHand(playerCards, counter, originalKinds) {
       // Straight Flush -> return
       let straightFlush;
       cards.sort((a, b) => cardValues[a.kind] - cardValues[b.kind]);
-      for(let i = 0; i <= cards.length-5; ++i) {
+      for (let i = 0; i <= cards.length-5; ++i) {
         straightFlush = true;
-        for(let j = i+1; j < i+5; ++j) {
+        for (let j = i+1; j < i+5; ++j) {
           if (cardValues[cards[j]] !== cardValues[cards[j-1]] + 1) {
             straightFlush = false;
             break;
@@ -195,7 +198,7 @@ function evalHand(playerCards, counter, originalKinds) {
       handSoFar = {
         order: 5,
         name: 'Flush',
-        cards: cards.slice(i, 5),
+        cards: cards.slice(0, 5),
         highestCardValue: (() => {
           let otherCards = playerCards.filter(card => card.suit !== suit);
           if (otherCards.length === 0) {
@@ -207,8 +210,33 @@ function evalHand(playerCards, counter, originalKinds) {
     }
   }
 
+  // Straight
+  if (handSoFar.order > 6) {
+    let straight;
+    cards = [...playerCards]
+    cards = cards.sort((a, b) => cardValues[a.kind] - cardValues[b.kind]).reverse()
+    for (let i = 0; i <= cards.length-5; ++i) {
+      straight = true;
+      for (let j = i+1; j < i+5; ++j) {
+        if (cardValues[cards[j]] !== cardValues[cards[j-1]] + 1) {
+          straight = false;
+          break;
+        }
+      }
+      if (straight) {
+        handSoFar = {
+          order: 6,
+          name: 'Straight',
+          cards: cards.slice(i, i+5),
+          highestCardValue: cards[i]
+        }
+        break;
+      }
+    }
+  }
+
   for (let kind in counter.kinds) {
-    if (counter.kinds[kind] === 4 && kind in originalKinds) {
+    if (counter.kinds[kind] === 4) {
       // Four of a kind -> return
       cards = playerCards.filter(card => card.kind === kind);
       return {
@@ -217,11 +245,11 @@ function evalHand(playerCards, counter, originalKinds) {
         cards: cards,
         highestCardValue: cardValues[cards[0]]
       };
-    } else if (counter.kinds[kind] === 3 && kind in originalKinds) {
+    } else if (counter.kinds[kind] === 3) {
       // Full House
       cards = playerCards.filter(card => card.kind === kind);
       for (let kind2 in counter.kinds) {
-        if (counter.kinds[kind2] >= 2 && kind2 in originalKinds && kind !== kind2) {
+        if (counter.kinds[kind2] >= 2 && kind !== kind2) {
           if ((hansSoFar.order === 4 && handSoFar.highestCardValue < cardValues[cards[0]] ) || handSoFar.order > 4) {
             handSoFar = {
               order: 4,
@@ -242,11 +270,11 @@ function evalHand(playerCards, counter, originalKinds) {
           highestCardValue: cardValues[cards[0]]
         }
       }
-    } else if (counter.kinds[kind] === 2 && kind in originalKinds) {
+    } else if (counter.kinds[kind] === 2) {
       // Two Pairs
       cards = playerCards.filter(card => card.kind === kind);
       for (let kind2 in counter.kinds) {
-        if (counter.kinds[kind2] == 2 && kind2 in originalKinds && kind !== kind2) {
+        if (counter.kinds[kind2] == 2 && kind !== kind2) {
           if ((hansSoFar.order === 8 && handSoFar.highestCardValue < cardValues[cards[0]] ) || handSoFar.order > 8) {
             handSoFar = {
               order: 8,

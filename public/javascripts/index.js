@@ -1,18 +1,15 @@
-$('select')
-  .dropdown()
-;
+var kinds = ['A','1','2','3','4','5','6','7','8','9','10','J','Q','K'];
+var suits = ['Spades','Hearts','Clubs','Diamonds'];
+var suit_entities = {
+  'Spades'   : '&spades;',
+  'Hearts'   : '<span style="color:crimson">&hearts;</span>',
+  'Clubs'    : '&clubs;',
+  'Diamonds' : '<span style="color:crimson">&diams;</span>'
+};
+
 
 function initCardDropdown(id) {
   let dropdown = document.getElementById(id);
-  
-  let kinds = ['A','1','2','3','4','5','6','7','8','9','10','J','Q','K'];
-  let suits = ['Spades','Hearts','Clubs','Diamonds'];
-  let suit_entities = {
-    'Spades'   : '&spades;',
-    'Hearts'   : '<span style="color:crimson">&hearts;</span>',
-    'Clubs'    : '&clubs;',
-    'Diamonds' : '<span style="color:crimson">&diams;</span>'
-  };
   
   for (let suit of suits) {
     for (let kind of kinds) {
@@ -45,12 +42,45 @@ function compareCards(ev) {
       if (response.ok) {
         responseElement.classList.add("ui","info","message");
 
-        responseElement.innerHTML = '<strong>' + response.winner + '</strong>';
+        let header = document.createElement('div');
+        header.classList.add('header');
+        header.innerHTML = 'Winner: <strong>' + response.winner + '</strong>';
 
+        let playersList = document.createElement('ul');
+        playersList.classList.add('list');
+
+        let player1Info = document.createElement('li');
+        let player1Text = document.createTextNode('Player 1');
+        player1Info.appendChild(player1Text);
+        let player1Game = document.createElement('ul');
+        let player1Hand = document.createElement('li');
+        player1Hand.innerHTML = 'Hand: ' + response.player1Hand.name;
+        let player1Cards = document.createElement('li');
+        player1Cards.innerHTML = 'Cards: ' + renderCards(response.player1Hand.cards);
+        player1Game.appendChild(player1Hand);
+        player1Game.appendChild(player1Cards);
+
+        let player2Info = document.createElement('li');
+        let player2Text = document.createTextNode('Player 2');
+        player2Info.appendChild(player2Text);
+        let player2Game = document.createElement('ul');
+        let player2Hand = document.createElement('li');
+        player2Hand.innerHTML = 'Hand: ' + response.player2Hand.name;
+        let player2Cards = document.createElement('li');
+        player2Cards.innerHTML = 'Cards: ' + renderCards(response.player2Hand.cards);
+        player2Game.appendChild(player2Hand);
+        player2Game.appendChild(player2Cards);
+
+        playersList.appendChild(player1Info);
+        playersList.appendChild(player2Info);
+
+        responseElement.appendChild(header);
+        responseElement.appendChild(playersList);
       } else {
         responseElement.classList.add("ui","negative","message");
 
         let ul = document.createElement('ul');
+        ul.classList.add('list');
 
         for (let error of response.errors) {
           let li = document.createElement('li');
@@ -85,4 +115,10 @@ function getCards(selectId) {
       suit: splittedCard[1]
     };
   });
+}
+
+function renderCards(cardList) {
+  cardList.map((card) => {
+    return card.kind + ' ' + suit_entities[card.suit] + ' ';
+  })
 }

@@ -20,20 +20,13 @@ exports.pokerCompare = function (req, res) {
     communityCount(card, player2Count, game.player2Cards);
   });
 
-  console.log('community matched');
-
   let player1Hand = evalHand(game.player1Cards, player1Count);
-
   let player2Hand = evalHand(game.player2Cards, player2Count);
-  
-  console.log('hands evaluated');
-  console.log(player1Hand);
-  console.log(player2Hand);
 
   let winner;
-  if (player1Hand.order > player2Hand.order) {
+  if (player1Hand.order < player2Hand.order) {
     winner = "Player 1";
-  } else if (player1Hand.order < player2Hand.order) {
+  } else if (player1Hand.order > player2Hand.order) {
     winner = "Player 2";
   } else {
     if (player1Hand.highestCardValue > player2Hand.highestCardValue) {
@@ -44,8 +37,6 @@ exports.pokerCompare = function (req, res) {
       winner = "Draw";
     }
   }
-
-  console.log('winner defined');
   
   return res.json({
     ok: true,
@@ -124,14 +115,10 @@ function communityCount(card, counter, playerCards) {
   if (card.suit in counter.suits || card.kind in counter.kinds) {
     if (card.suit in counter.suits) {
       counter.suits[card.suit] += 1;
-    } else {
-      counter.suits[card.suit] = 1;
     }
 
     if (card.kind in counter.kinds) {
       counter.kinds[card.kind] += 1;
-    } else {
-      counter.kinds[card.kind] = 1;
     }
   }
 
@@ -155,8 +142,6 @@ function evalHand(playerCards, counter) {
     'K'  : 13,
   }
 
-  let playerCardValues = playerCards.map(c => cardValues[c.kind]);
-
   let handSoFar = {
     order: 10,
     name: 'HighCard',
@@ -175,7 +160,8 @@ function evalHand(playerCards, counter) {
         cards.find(card => card.kind === 'K') &&
         cards.find(card => card.kind === 'Q') &&
         cards.find(card => card.kind === 'J') &&
-        cards.find(card => card.kind === '10')
+        cards.find(card => card.kind === '10') &&
+        Object.keys(counter.kinds).find(kind => ['A','K','Q','J','10'].includes(kind))
       ) {
         return {
           order: 1,
@@ -201,7 +187,7 @@ function evalHand(playerCards, counter) {
             break;
           }
         }
-        if (straightFlush) {
+        if (straightFlush && Object.keys(counter.kinds).find(kind => cards.slice(i, i+5).includes(kind))) {
           return {
             order: 2,
             name: 'Straight Flush',

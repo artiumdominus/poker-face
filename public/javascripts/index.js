@@ -40,7 +40,6 @@ function compareCards(ev) {
 
       let response = JSON.parse(this.responseText);
       if (response.ok) {
-        debugger;
         responseElement.classList.add("ui","info","message");
 
         let header = document.createElement('div');

@@ -128,7 +128,7 @@ function communityCount(card, counter, playerCards) {
 
 function evalHand(playerCards, counter) {
   let cardValues = {
-    'A'  : 1,
+    'A'  : 14,
     '2'  : 2,
     '3'  : 3,
     '4'  : 4,

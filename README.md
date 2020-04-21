@@ -4,7 +4,7 @@ Utility to help poker newbies
 
 Author: [Pedro Basilio de Camargo Neto](https://github.com/artiumdominus)
 
-# How to run
+## How to run
 
 Is expected that you have [node](https://nodejs.org/) installed in your machine
 
@@ -16,7 +16,7 @@ Is expected that you have [node](https://nodejs.org/) installed in your machine
 
 The app will be running at [http://localhost:3000/](http://localhost:3000/)
 
-# Querying
+## Querying
 
 The communication between back-end and front-end happens in the endpoint: `/poker-compare`.
 

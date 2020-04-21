@@ -24,8 +24,22 @@ function initCardDropdown(id) {
 ['community-cards', 'player1-cards', 'player2-cards']
   .forEach((selectId) => initCardDropdown(selectId) );
 
-$('select')
-  .dropdown()
+$('#community-cards')
+  .dropdown({
+    maxSelections: 5
+  })
+;
+
+$('#player1-cards')
+  .dropdown({
+    maxSelections: 2
+  })
+;
+
+$('#player2-cards')
+  .dropdown({
+    maxSelections: 2
+  })
 ;
 
 function compareCards(ev) {

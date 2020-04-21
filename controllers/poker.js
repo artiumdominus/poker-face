@@ -1,7 +1,6 @@
 exports.pokerCompare = function (req, res) {
   
   let game = req.body;
-  console.log(req.body);
 
   let errors = validateGame(game);
 
@@ -68,8 +67,6 @@ function validateGame(game) {
 
   for (let card of allCards) {
     if (!kinds.includes(card.kind) || !suits.includes(card.suit)) {
-      console.log(card);
-      console.log(allCards);
       errors.push("There's some invalid cards in the input");
       return errors;
     }
@@ -115,10 +112,14 @@ function communityCount(card, counter, playerCards) {
   if (card.suit in counter.suits || card.kind in counter.kinds) {
     if (card.suit in counter.suits) {
       counter.suits[card.suit] += 1;
+    } else {
+      counter.suits[card.suit] = 1;
     }
 
     if (card.kind in counter.kinds) {
       counter.kinds[card.kind] += 1;
+    } else {
+      counter.kinds[card.kind] = 1;
     }
   }
 
@@ -160,8 +161,7 @@ function evalHand(playerCards, counter) {
         cards.find(card => card.kind === 'K') &&
         cards.find(card => card.kind === 'Q') &&
         cards.find(card => card.kind === 'J') &&
-        cards.find(card => card.kind === '10') &&
-        Object.keys(counter.kinds).find(kind => ['A','K','Q','J','10'].includes(kind))
+        cards.find(card => card.kind === '10')
       ) {
         return {
           order: 1,
@@ -187,7 +187,7 @@ function evalHand(playerCards, counter) {
             break;
           }
         }
-        if (straightFlush && Object.keys(counter.kinds).find(kind => cards.slice(i, i+5).includes(kind))) {
+        if (straightFlush) {
           return {
             order: 2,
             name: 'Straight Flush',
@@ -200,7 +200,7 @@ function evalHand(playerCards, counter) {
       handSoFar = {
         order: 5,
         name: 'Flush',
-        cards: cards.slice(0, 5),
+        cards: playerCards.filter(card => card.suit === suit).slice(0, 5),
         highestCardValue: (() => {
           let otherCards = playerCards.filter(card => card.suit !== suit);
           if (otherCards.length === 0) {
